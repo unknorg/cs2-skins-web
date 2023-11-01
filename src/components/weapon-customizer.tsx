@@ -4,6 +4,7 @@ import Image from "next/image";
 import {CSGOAPI_Skin, WeaponSkinDefinition} from "@/shared/types";
 import {ReactNode, useEffect, useState} from "react";
 import {saveSkin} from "@/shared/clientutils";
+import {currentSkinsSlice, useDispatch} from "@/lib/redux";
 
 interface WeaponCustomizerProps {
   skinDefinition: WeaponSkinDefinition | undefined,
@@ -17,6 +18,8 @@ interface SkinCustomization {
 }
 
 export default function WeaponCustomizer({skinDefinition, weaponSkins}: WeaponCustomizerProps) {
+  const dispatch = useDispatch();
+
   const skins: [string, ReactNode][] = [];
   weaponSkins.forEach((skin, paintId) => skins.push([paintId, (
       <WeaponDisplay key={paintId} csgoSkin={weaponSkins.get(paintId)!} textProps="text-xs"/>)]))
@@ -36,6 +39,12 @@ export default function WeaponCustomizer({skinDefinition, weaponSkins}: WeaponCu
     const selectedSkinId = customization.skinId.toString();
     setSelectedSkin(weaponSkins.get(selectedSkinId)!)
   }, [customization, weaponSkins])
+
+  const onApply = () => {
+    const definition: WeaponSkinDefinition = new WeaponSkinDefinition(
+        selectedSkin!.weapon.id, 0, customization!.skinId, customization!.seed, customization!.wear);
+    saveSkin(definition).then(() => dispatch(currentSkinsSlice.actions.update(definition)));
+  }
 
   return selectedSkin && customization && (
       <div className="col-span-8 bg-white border border-gray-200 rounded-lg shadow h-full overflow-auto">
@@ -78,7 +87,7 @@ export default function WeaponCustomizer({skinDefinition, weaponSkins}: WeaponCu
             <div className="mt-5 flex justify-center">
               <button type="button"
                       className="text-white my-auto bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                      onClick={() => onClickEvent(selectedSkin!.weapon.id, customization)}
+                      onClick={onApply}
               >Apply
               </button>
             </div>
@@ -98,9 +107,4 @@ function fromSkinDef(skinDef?: WeaponSkinDefinition): SkinCustomization {
   return {
     seed: skinDef?.seed ?? 0, skinId: skinDef?.skinId ?? 0, wear: skinDef?.wear ?? 0
   }
-}
-
-async function onClickEvent(weaponId: string, customization: SkinCustomization) {
-  const definition: WeaponSkinDefinition = new WeaponSkinDefinition(weaponId, 0, customization.skinId, customization.seed, customization.wear);
-  await saveSkin(definition);
 }

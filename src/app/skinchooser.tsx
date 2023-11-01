@@ -5,14 +5,17 @@ import VerticalScroll from "@/components/vertical-scroll";
 import WeaponCustomizer from "@/components/weapon-customizer";
 import {ReactNode, useEffect, useState} from "react";
 import {getAllSkins, getUserSkins, getWeapons} from "@/shared/clientutils";
-import {CSGOAPI_Skin, WeaponSkinDefinition} from "@/shared/types";
+import {CSGOAPI_Skin} from "@/shared/types";
+import {currentSkinsSlice, selectSkinDefs, useDispatch, useSelector} from "@/lib/redux";
 
 export default function SkinChooser() {
   // TODO: excuse this spaghetti for now...
+  const dispatch = useDispatch();
+  const skinDefinitions = useSelector(selectSkinDefs)
+
   const [loaded, setLoaded] = useState(false);
 
   const [weapons, setWeapons] = useState<Map<string, string>>();
-  const [skinDefinitions, setSkinDefinitions] = useState<Map<string, WeaponSkinDefinition>>();
   const [selectedWeapon, setSelectedWeapon] = useState("weapon_deagle");
   const [weaponSkins, setWeaponSkins] = useState<Map<string, Map<string, CSGOAPI_Skin>>>()
 
@@ -20,10 +23,10 @@ export default function SkinChooser() {
 
   // Init weapons and user skins
   useEffect(() => {
+    getUserSkins().then(currentSkinsSlice.actions.updateAll).then(dispatch);
     getWeapons().then(setWeapons);
-    getUserSkins().then(setSkinDefinitions);
     getAllSkins().then(setWeaponSkins);
-  }, [])
+  }, [dispatch])
 
   // Refresh display
   useEffect(() => {
