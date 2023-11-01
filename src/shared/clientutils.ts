@@ -15,6 +15,16 @@ export function getUserSkins(): Promise<Map<string, WeaponSkinDefinition>> {
       })
 }
 
+export function saveSkin(skinDef: WeaponSkinDefinition) {
+  return fetch("/api/editor", {
+    method: 'POST',
+    body: JSON.stringify(skinDef),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+}
+
 export function getWeapons(): Promise<Map<string, string>> {
   if (weapons !== undefined) {
     return Promise.resolve(weapons);

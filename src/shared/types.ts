@@ -1,5 +1,4 @@
 import {Stream} from "stream";
-import {WeaponId} from "@/shared/weaponid";
 
 export class ByteWriter {
   private array: Uint8Array;
@@ -74,6 +73,10 @@ export class WeaponSkinDefinition extends Serializable {
   // TODO: unit test this
   static SERIALIZATION_LENGTH = 16;
 
+  static copy(from: WeaponSkinDefinition): WeaponSkinDefinition {
+    return new WeaponSkinDefinition(from.weaponName, from.weaponId, from.skinId, from.seed, from.wear);
+  }
+
   constructor(public weaponName: string, // json serialization only
               public weaponId: number, // byte
               public skinId: number, // int32
@@ -96,18 +99,16 @@ export class WeaponSkinDefinition extends Serializable {
 }
 
 export class ServerPlayer extends Serializable {
-  static SERIALIZATION_LENGTH = 12;
+  static SERIALIZATION_LENGTH = 8;
 
   constructor(
       private steamId64: number, // int64
-      private userId: number // int32
   ) {
     super();
   }
 
   serializeBytes(writer: ByteWriter): void {
     writer.writeInt64(this.steamId64);
-    writer.writeInt32(this.userId);
   }
 
   serializationLength(): number {
@@ -135,26 +136,22 @@ export class PlayerSkins implements Serializable {
   }
 }
 
-export interface WeaponSkin {
-  weaponId: WeaponId,
-  skinId: number,
-  skinName: string
-}
-
 export class CacheEntry<T> {
-  private cached: T | undefined;
+  private cached: T;
   private cachedInstant: number = 0;
 
   constructor(
       private ttlSeconds: number,
+      private initValue: T,
       private provider: () => Promise<T>
   ) {
-    this.invalidate();
+    this.cached = initValue;
+    this.cachedInstant = Date.now();
   }
 
   get(): T {
     if (this.cachedInstant + this.ttlSeconds * 1000 < Date.now()) {
-      this.invalidate()
+      this.invalidate();
     }
 
     return this.cached!;
@@ -186,4 +183,14 @@ export interface CSGOAPI_Skin {
   }
   stattrak: boolean,
   souvenir: boolean
+}
+
+export abstract class Storage {
+  abstract persist(steamId64: number, def: WeaponSkinDefinition): void;
+
+  abstract delete(steamId64: number, weaponId: number): void;
+
+  abstract fetch(steamId64: number): PlayerSkins;
+
+  abstract fetchAll(): PlayerSkins[];
 }

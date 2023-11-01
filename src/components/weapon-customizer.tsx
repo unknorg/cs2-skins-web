@@ -3,6 +3,7 @@ import WeaponDisplay from "@/components/weapon-display";
 import Image from "next/image";
 import {CSGOAPI_Skin, WeaponSkinDefinition} from "@/shared/types";
 import {ReactNode, useEffect, useState} from "react";
+import {saveSkin} from "@/shared/clientutils";
 
 interface WeaponCustomizerProps {
   skinDefinition: WeaponSkinDefinition | undefined,
@@ -77,7 +78,7 @@ export default function WeaponCustomizer({skinDefinition, weaponSkins}: WeaponCu
             <div className="mt-5 flex justify-center">
               <button type="button"
                       className="text-white my-auto bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                      onClick={() => onClickEvent(customization)}
+                      onClick={() => onClickEvent(selectedSkin!.weapon.id, customization)}
               >Apply
               </button>
             </div>
@@ -99,6 +100,7 @@ function fromSkinDef(skinDef?: WeaponSkinDefinition): SkinCustomization {
   }
 }
 
-function onClickEvent(customization: SkinCustomization) {
-  console.log("customization: ", customization)
+async function onClickEvent(weaponId: string, customization: SkinCustomization) {
+  const definition: WeaponSkinDefinition = new WeaponSkinDefinition(weaponId, 0, customization.skinId, customization.seed, customization.wear);
+  await saveSkin(definition);
 }
