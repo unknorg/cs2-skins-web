@@ -1,4 +1,5 @@
 import {Stream} from "stream";
+import {Rarity} from "@/shared/rarity";
 
 export class ByteWriter {
   private array: Uint8Array;
@@ -175,7 +176,7 @@ export interface CSGOAPI_Skin {
     name: string
   }
   rarity: {
-    id: string,
+    id: Rarity,
     name: string
   }
   pattern?: {

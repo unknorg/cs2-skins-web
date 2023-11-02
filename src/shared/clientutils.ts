@@ -1,4 +1,6 @@
 import {CSGOAPI_Skin, WeaponSkinDefinition} from "@/shared/types";
+import {WeaponIds} from "@/shared/weaponid";
+import {Rarity} from "@/shared/rarity";
 
 let weapons: Map<string, string> | undefined;
 let skinsByWeapon: Map<string, Map<string, CSGOAPI_Skin>> | undefined;
@@ -45,16 +47,6 @@ export function getAllSkins(): Promise<Map<string, Map<string, CSGOAPI_Skin>>> {
       .then(() => skinsByWeapon!);
 }
 
-export function getSkinsForWeapon(weaponId: string): Promise<Map<string, CSGOAPI_Skin>> {
-  if (skinsByWeapon !== undefined) {
-    return Promise.resolve(skinsByWeapon.get(weaponId)!);
-  }
-
-  return getSkinsFromAPI()
-      .then(buildSkinsMap)
-      .then(() => skinsByWeapon!.get(weaponId)!);
-}
-
 function getSkinsFromAPI(): Promise<CSGOAPI_Skin[]> {
   if (!ongoingJsonPromise) {
     ongoingJsonPromise = fetch("https://bymykel.github.io/CSGO-API/api/en/skins.json")
@@ -74,6 +66,10 @@ function buildSkinsMap(skins: CSGOAPI_Skin[]): void {
 
   for (const skin of skins) {
     const weaponId = skin.weapon.id;
+    if (WeaponIds[weaponId as keyof typeof WeaponIds] === undefined) {
+      continue;
+    }
+
     if (!weapons.has(weaponId)) {
       weapons.set(weaponId, skin.weapon.name)
       skinsByWeapon.set(weaponId, new Map());
@@ -83,11 +79,25 @@ function buildSkinsMap(skins: CSGOAPI_Skin[]): void {
         souvenir: false,
         stattrak: false,
         image: skin.image,
-        rarity: skin.rarity,
+        rarity: {
+          id: Rarity.rarity_none,
+          name: "Default skin."
+        },
         weapon: skin.weapon
       })
     }
 
-    skinsByWeapon.get(weaponId)!.set(skin.paint_index, skin);
+    skinsByWeapon.get(weaponId)!.set(skin.paint_index, patchSkin(skin));
+  }
+}
+
+function patchSkin(skin: CSGOAPI_Skin): CSGOAPI_Skin {
+  return {
+    ...skin,
+    rarity: {
+      id: Rarity[skin.rarity.id as unknown as keyof typeof Rarity],
+      name: skin.rarity.name
+
+    }
   }
 }

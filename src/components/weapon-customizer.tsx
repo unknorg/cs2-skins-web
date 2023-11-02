@@ -21,8 +21,10 @@ export default function WeaponCustomizer({skinDefinition, weaponSkins}: WeaponCu
   const dispatch = useDispatch();
 
   const skins: [string, ReactNode][] = [];
-  weaponSkins.forEach((skin, paintId) => skins.push([paintId, (
-      <WeaponDisplay key={paintId} csgoSkin={weaponSkins.get(paintId)!} textProps="text-xs"/>)]))
+  Array.from(weaponSkins.entries())
+      .sort(([p1, skin1], [p2, skin2]) => skin1.rarity.id - skin2.rarity.id)
+      .forEach(([paintId, skin]) => skins.push([paintId, (
+          <WeaponDisplay key={paintId} csgoSkin={weaponSkins.get(paintId)!} textProps="text-xs"/>)]))
 
   const [selectedSkin, setSelectedSkin] = useState<CSGOAPI_Skin>();
   const [customization, setCustomization] = useState<SkinCustomization>();

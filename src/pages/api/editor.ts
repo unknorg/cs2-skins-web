@@ -16,7 +16,7 @@ export default function handler(
   const steamId64 = getSessionSteamId64()!;
   const skinDef = req.body as WeaponSkinDefinition;
 
-  const weaponId = WeaponIds[skinDef.weaponName];
+  const weaponId = WeaponIds[skinDef.weaponName as keyof typeof WeaponIds];
 
   if (skinDef.skinId === 0) {
     defaultStorage!.delete(steamId64, weaponId);
@@ -71,7 +71,7 @@ function validate(req: NextApiRequest, res: NextApiResponse<string>): boolean {
     return false;
   }
 
-  if (!body.weaponName || WeaponIds[body.weaponName] === undefined) {
+  if (!body.weaponName || WeaponIds[body.weaponName as keyof typeof WeaponIds] === undefined) {
     res.status(constants.HTTP_STATUS_BAD_REQUEST).send("Invalid body: unknown/unsupported weapon name");
     return false;
   }

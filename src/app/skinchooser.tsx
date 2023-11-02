@@ -24,8 +24,10 @@ export default function SkinChooser() {
   // Init weapons and user skins
   useEffect(() => {
     getUserSkins().then(currentSkinsSlice.actions.updateAll).then(dispatch);
-    getWeapons().then(setWeapons);
-    getAllSkins().then(setWeaponSkins);
+    getWeapons()
+        .then(setWeapons);
+    getAllSkins()
+        .then(setWeaponSkins);
   }, [dispatch])
 
   // Refresh display
