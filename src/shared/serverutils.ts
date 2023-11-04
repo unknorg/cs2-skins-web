@@ -1,6 +1,19 @@
 import {CacheEntry, CSGOAPI_Skin} from "@/shared/types";
 import {STEAM_ID_64} from "@/shared/constants";
+import {Liquibase, LiquibaseConfig, POSTGRESQL_DEFAULT_CONFIG} from "liquibase";
 
+if (typeof window !== "undefined") {
+  throw new Error("serverutils.ts is meant to be executed server-side only")
+}
+
+const liquibaseConfig: LiquibaseConfig = {
+  ...POSTGRESQL_DEFAULT_CONFIG,
+  url: 'jdbc:postgresql://localhost:5432/cs2skins',
+  username: 'user',
+  password: 'password',
+  changeLogFile: 'migrations/db.changelog-root.xml'
+};
+export const liquibase = new Liquibase(liquibaseConfig);
 
 function getSkinsFromAPI(): Promise<Map<string, CSGOAPI_Skin>> {
   return fetch("https://bymykel.github.io/CSGO-API/api/en/skins.json")
