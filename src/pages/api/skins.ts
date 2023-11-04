@@ -2,23 +2,27 @@ import type {NextApiRequest, NextApiResponse} from 'next'
 import {Serializable} from "@/shared/types";
 import {defaultStorage} from "@/shared/storage";
 import {constants} from "http2";
-import {getSessionSteamId64} from "@/shared/serverutils";
+import {isValidToken} from "@/shared/serverutils";
+import {getToken, JWT} from "next-auth/jwt";
 
-export default function handler(
+export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<string>
 ) {
+  const token = await getToken({req});
+  if (!isValidToken(token, res)) {
+    return;
+  }
+
   if (!validate(req, res)) {
     return;
   }
 
   switch (req.headers.accept) {
     case "application/octet-stream":
-      octetHandler(req, res);
-      break;
+      return octetHandler(token, req, res);
     default:
-      jsonHandler(req, res);
-      break;
+      return jsonHandler(token, req, res);
   }
 }
 
@@ -36,25 +40,26 @@ function validate(req: NextApiRequest, res: NextApiResponse<string>): boolean {
   return true;
 }
 
-function jsonHandler(req: NextApiRequest, res: NextApiResponse) {
-  const steamId64 = getSessionSteamId64();
-  if (!steamId64) {
+async function jsonHandler(token: JWT, req: NextApiRequest, res: NextApiResponse) {
+  const accountId = token.accountId as number;
+  if (!accountId) {
     res.status(constants.HTTP_STATUS_UNAUTHORIZED).send("Not authorized");
     return;
   }
 
   res.setHeader("Content-Type", "application/json");
-  res.json(defaultStorage?.fetch(steamId64).skins ?? []);
+  return defaultStorage?.fetch(accountId).then(ps => ps.skins)
+      .then(res.json);
 }
 
-function octetHandler(req: NextApiRequest, res: NextApiResponse) {
-  const steamId64 = req.query.steamId64;
-  if (!steamId64 || typeof steamId64 !== 'string' || isNaN(Number(steamId64))) {
-    res.status(constants.HTTP_STATUS_BAD_REQUEST).send("Bad request parameter: steamId64");
-    return false;
+async function octetHandler(token: JWT, req: NextApiRequest, res: NextApiResponse) {
+  const accountId = req.query.accountId;
+  if (!accountId || typeof accountId !== 'string' || isNaN(Number(accountId))) {
+    res.status(constants.HTTP_STATUS_BAD_REQUEST).send("Bad request parameter: accountId");
+    return;
   }
 
-  const playerSkins = defaultStorage!.fetch(Number(steamId64))
+  const playerSkins = await defaultStorage!.fetch(Number(accountId))
   let writer = Serializable.createWriterFor(playerSkins);
   playerSkins.serializeBytes(writer);
   let readableStream = writer.getStream()

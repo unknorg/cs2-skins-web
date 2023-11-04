@@ -2,24 +2,30 @@ import type {NextApiRequest, NextApiResponse} from 'next'
 import {WeaponSkinDefinition} from "@/shared/types";
 import {constants} from "http2";
 import {WeaponIds} from "@/shared/weaponid";
-import {getSessionSteamId64, skinsCache} from "@/shared/serverutils";
+import {isValidToken, skinsCache} from "@/shared/serverutils";
 import {defaultStorage} from "@/shared/storage";
+import {getToken} from "next-auth/jwt";
 
-export default function handler(
+export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<string>
 ) {
+  const token = await getToken({req});
+  // TODO: validate using middleware ?
+  if (!isValidToken(token, res)) {
+    return;
+  }
+
   if (!validate(req, res)) {
     return;
   }
 
-  const steamId64 = getSessionSteamId64()!;
+  const accountId = token.accountId as number;
   const skinDef = req.body as WeaponSkinDefinition;
-
   const weaponId = WeaponIds[skinDef.weaponName as keyof typeof WeaponIds];
 
   if (skinDef.skinId === 0) {
-    defaultStorage!.delete(steamId64, weaponId);
+    await defaultStorage!.delete(accountId, weaponId);
     res.status(200).send("");
   }
 
@@ -34,19 +40,18 @@ export default function handler(
     ...skinDef,
     weaponId
   } as WeaponSkinDefinition)
-  defaultStorage!.persist(steamId64, definition);
-  res.send("");
+
+  return defaultStorage!.persist(accountId, definition)
+      .then(() => res.send(""))
+      .catch(err => {
+        console.log("Database persist error:", err);
+        res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send("Unexpected error");
+      });
 }
 
 function validate(req: NextApiRequest, res: NextApiResponse<string>): boolean {
   if (req.method !== 'POST') {
     res.status(constants.HTTP_STATUS_METHOD_NOT_ALLOWED).send("Only 'POST' method is allowed.");
-    return false;
-  }
-
-  const steamId64 = getSessionSteamId64();
-  if (!steamId64) {
-    res.status(constants.HTTP_STATUS_UNAUTHORIZED).send("Not authorized");
     return false;
   }
 

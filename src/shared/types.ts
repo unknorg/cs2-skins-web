@@ -70,6 +70,7 @@ export class SerializableCollection<T extends Serializable> extends Serializable
   }
 }
 
+// TODO: to remove this and use entities
 export class WeaponSkinDefinition extends Serializable {
   // TODO: unit test this
   static SERIALIZATION_LENGTH = 16;
@@ -187,11 +188,9 @@ export interface CSGOAPI_Skin {
 }
 
 export abstract class Storage {
-  abstract persist(steamId64: number, def: WeaponSkinDefinition): void;
+  abstract persist(accountId: number, def: WeaponSkinDefinition): Promise<void>;
 
-  abstract delete(steamId64: number, weaponId: number): void;
+  abstract delete(accountId: number, weaponId: number): Promise<void>;
 
-  abstract fetch(steamId64: number): PlayerSkins;
-
-  abstract fetchAll(): PlayerSkins[];
+  abstract fetch(accountId: number): Promise<PlayerSkins>;
 }
