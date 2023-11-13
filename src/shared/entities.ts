@@ -9,6 +9,7 @@ export class Account extends BaseEntity {
     this.provider = undefined as unknown as string;
     this.name = undefined as unknown as string;
     this.email = undefined as unknown as string;
+    this.token = undefined as unknown as string;
     this.skins = undefined as unknown as Skin[];
   }
 
@@ -23,6 +24,9 @@ export class Account extends BaseEntity {
 
   @Column()
   email: string
+
+  @Column()
+  token: string
 
   // TODO: investigate why lazy loading (skins: Promise<Skin[]>) resolves into undefined.
   @OneToMany(() => Skin, skin => skin.account, {eager: true})

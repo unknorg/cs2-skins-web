@@ -4,6 +4,8 @@ import NextAuth, {Account as AuthAccount, Profile} from 'next-auth'
 import {Account} from '@/shared/entities'
 import GoogleProvider from "next-auth/providers/google";
 import {initORM} from "@/shared/serverutils";
+import * as crypto from "crypto";
+import {TOKEN_SIZE} from "@/shared/constants";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   return NextAuth(req, res, {
@@ -54,5 +56,6 @@ function toEntity(account: AuthAccount, profile: Profile): Account {
   entity.provider = account.provider;
   entity.name = profile.name ?? "unnamed";
   entity.email = profile.email!;
+  entity.token = crypto.randomBytes(TOKEN_SIZE / 2).toString('hex')
   return entity;
 }

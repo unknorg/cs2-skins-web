@@ -1,4 +1,11 @@
-import {PlayerSkins, ServerPlayer, Storage, WeaponSkinDefinition} from "@/shared/types";
+import {
+  AccountNotFoundError,
+  InvalidTokenError,
+  PlayerSkins,
+  ServerPlayer,
+  Storage,
+  WeaponSkinDefinition
+} from "@/shared/types";
 import {initORM} from "@/shared/serverutils";
 import {Account, Skin} from "@/shared/entities";
 import {WeaponIds} from "@/shared/weaponid";
@@ -14,14 +21,17 @@ export class DatabaseStorage extends Storage {
         })
   }
 
-  fetch(accountId: number): Promise<PlayerSkins> {
+  fetch(accountId: number, token?: string): Promise<PlayerSkins> {
     return initORM().then(ds => ds.getRepository(Account))
         .then(r => r.findOneBy({
           id: accountId
         }))
         .then(account => {
           if (!account) {
-            throw new Error(`Account '${accountId}' not found`)
+            throw new AccountNotFoundError(accountId);
+          }
+          if (token && account.token !== token) {
+            throw new InvalidTokenError();
           }
           return this.fromAccount(account);
         })

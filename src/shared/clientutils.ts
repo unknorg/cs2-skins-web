@@ -7,8 +7,14 @@ let skinsByWeapon: Map<string, Map<string, CSGOAPI_Skin>> | undefined;
 
 let ongoingJsonPromise: Promise<CSGOAPI_Skin[]> | undefined;
 
+export function getUserToken(): Promise<string> {
+  return fetch("/api/v1/user/token")
+      .then(res => res.json())
+      .then(res => res.token);
+}
+
 export function getUserSkins(): Promise<Map<string, WeaponSkinDefinition>> {
-  return fetch("/api/skins")
+  return fetch("/api/v1/skins")
       .then(res => res.json())
       .then((defs: WeaponSkinDefinition[]) => {
         const map = new Map<string, WeaponSkinDefinition>();
@@ -18,7 +24,7 @@ export function getUserSkins(): Promise<Map<string, WeaponSkinDefinition>> {
 }
 
 export function saveSkin(skinDef: WeaponSkinDefinition) {
-  return fetch("/api/editor", {
+  return fetch("/api/v1/editor", {
     method: 'POST',
     body: JSON.stringify(skinDef),
     headers: {

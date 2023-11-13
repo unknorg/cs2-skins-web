@@ -192,5 +192,14 @@ export abstract class Storage {
 
   abstract delete(accountId: number, weaponId: number): Promise<void>;
 
-  abstract fetch(accountId: number): Promise<PlayerSkins>;
+  abstract fetch(accountId: number, token?: string): Promise<PlayerSkins>;
+}
+
+export class AccountNotFoundError extends Error {
+  constructor(public accountId: number) {
+    super();
+  }
+}
+
+export class InvalidTokenError extends Error {
 }
