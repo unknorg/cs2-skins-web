@@ -1,0 +1,40 @@
+name: Build Node using npm
+on:
+  pull_request:
+    types: [ opened, synchronize, labeled ]
+    branches:
+      - main
+  push:
+    tags:
+      - '*'
+
+jobs:
+  prevent-dependabot:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ github.actor == 'dependabot[bot]' }}
+        run: |
+          echo "::error::Dependabot is not allowed to run workflows, please label this PR to trigger the workflow"
+          exit 1
+
+  common-build-node:
+    permissions:
+      contents: read
+      pull-requests: write
+    needs: [ prevent-dependabot ]
+    uses: unknorg/common-workflows/.github/workflows/build-npm-docker.gen.yml@generated/npm-workflow
+    with:
+      node-version: 18
+      docker-registry: ${{ vars.NEXUS_DOCKER_REGISTRY }}
+      use-custom-artifact-repo: true
+      artifact-repo-url: ${{ vars.NEXUS_CI_RAW_REPO }}
+      release-version: ${{ github.ref_name }}
+      helm-registry: ${{ vars.NEXUS_HELM_REGISTRY }}
+    secrets:
+      DOCKER_REPOSITORY_USER: ${{ secrets.NEXUS_CI_ADMIN_USER }}
+      DOCKER_REPOSITORY_PASSWORD: ${{ secrets.NEXUS_CI_ADMIN_PASSWORD }}
+      HELM_REGISTRY_USERNAME: ${{ secrets.NEXUS_CI_ADMIN_USER }}
+      HELM_REGISTRY_PASSWORD: ${{ secrets.NEXUS_CI_ADMIN_PASSWORD }}
+      ADDITIONAL_DOCKER_REPOS: ${{ secrets.ADDITIONAL_DOCKER_REPOS }}
+      ARTIFACT_REPO_USER: ${{ secrets.NEXUS_CI_ADMIN_USER }}
+      ARTIFACT_REPO_PASSWORD: ${{ secrets.NEXUS_CI_ADMIN_PASSWORD }}
