@@ -3,7 +3,7 @@ import {NextApiRequest, NextApiResponse} from 'next'
 import NextAuth, {Account as AuthAccount, Profile} from 'next-auth'
 import {Account} from '@/shared/entities'
 import GoogleProvider from "next-auth/providers/google";
-import {initORM} from "@/shared/serverutils";
+import {initORM, variable} from "@/shared/serverutils";
 import * as crypto from "crypto";
 import {TOKEN_SIZE} from "@/shared/constants";
 
@@ -11,8 +11,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   return NextAuth(req, res, {
     providers: [
       GoogleProvider({
-        clientId: process.env.GOOGLE_CLIENT_ID!,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET!
+        clientId: variable("GOOGLE_CLIENT_ID"),
+        clientSecret: variable("GOOGLE_CLIENT_SECRET")
       })
     ],
     session: {

@@ -7,7 +7,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json ./
 RUN npm ci
 
 
@@ -36,6 +36,7 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
+COPY migrations ./migrations
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
@@ -45,6 +46,11 @@ RUN chown nextjs:nodejs .next
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Add bash and openjdk for liquibase
+# TODO: investigate why liquibase is not imported with its binaries
+RUN apk add --no-cache bash openjdk11 &&\
+    (npm install liquibase || echo OK)
 
 USER nextjs
 
