@@ -1,0 +1,11 @@
+name: Create Tag
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  common-create-tag:
+    uses: unknorg/common-workflows/.github/workflows/create-tag.gen.yml@v0.5.0
+    secrets:
+      GITHUB_PAT: ${{ secrets.COMMON_PAT }}

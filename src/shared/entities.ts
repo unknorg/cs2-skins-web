@@ -1,6 +1,6 @@
 import {BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm"
 
-@Entity()
+@Entity({name: "account", schema: "public"})
 export class Account extends BaseEntity {
   constructor() {
     super();
@@ -33,7 +33,7 @@ export class Account extends BaseEntity {
   skins: Skin[]
 }
 
-@Entity()
+@Entity({name: "skin", schema: "public"})
 export class Skin extends BaseEntity {
   constructor() {
     super();
