@@ -6,6 +6,6 @@ on:
 
 jobs:
   common-create-tag:
-    uses: unknorg/common-workflows/.github/workflows/create-tag.gen.yml@v0.4.3
+    uses: unknorg/common-workflows/.github/workflows/create-tag.gen.yml@v0.5.0
     secrets:
       GITHUB_PAT: ${{ secrets.COMMON_PAT }}
