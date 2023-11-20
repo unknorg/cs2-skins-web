@@ -60,7 +60,7 @@ async function jsonHandler(token: JWT, req: NextApiRequest, res: NextApiResponse
       });
 }
 
-const tokenRegExp = new RegExp(`^([1-9]\\d*)\\|([a-z0-9]{${TOKEN_SIZE}})$`)
+const tokenRegExp = new RegExp(`^([1-9]\\d*)\\s([a-z0-9]{${TOKEN_SIZE}})$`)
 
 async function octetHandler(req: NextApiRequest, res: NextApiResponse) {
   const token = req.query.accountToken;
