@@ -104,13 +104,13 @@ export class ServerPlayer extends Serializable {
   static SERIALIZATION_LENGTH = 8;
 
   constructor(
-      private steamId64: number, // int64
+      private accountId: number, // int64
   ) {
     super();
   }
 
   serializeBytes(writer: ByteWriter): void {
-    writer.writeInt64(this.steamId64);
+    writer.writeInt64(this.accountId);
   }
 
   serializationLength(): number {

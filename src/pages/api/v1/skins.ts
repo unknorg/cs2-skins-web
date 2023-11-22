@@ -3,18 +3,13 @@ import {AccountNotFoundError, InvalidTokenError, Serializable} from "@/shared/ty
 import {defaultStorage} from "@/shared/storage";
 import {constants} from "http2";
 import {isValidToken} from "@/shared/serverutils";
-import {getToken, JWT} from "next-auth/jwt";
+import {getToken} from "next-auth/jwt";
 import {TOKEN_SIZE} from "@/shared/constants";
 
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<string>
 ) {
-  const token = await getToken({req});
-  if (!isValidToken(token, res)) {
-    return;
-  }
-
   if (!validate(req, res)) {
     return;
   }
@@ -23,7 +18,7 @@ export default async function handler(
     case "application/octet-stream":
       return octetHandler(req, res);
     default:
-      return jsonHandler(token, req, res);
+      return jsonHandler(req, res);
   }
 }
 
@@ -41,7 +36,12 @@ function validate(req: NextApiRequest, res: NextApiResponse<string>): boolean {
   return true;
 }
 
-async function jsonHandler(token: JWT, req: NextApiRequest, res: NextApiResponse) {
+async function jsonHandler(req: NextApiRequest, res: NextApiResponse) {
+  const token = await getToken({req});
+  if (!isValidToken(token, res)) {
+    return;
+  }
+
   const accountId = token.accountId as number;
   if (!accountId) {
     res.status(constants.HTTP_STATUS_UNAUTHORIZED).send("Not authorized");
@@ -60,7 +60,7 @@ async function jsonHandler(token: JWT, req: NextApiRequest, res: NextApiResponse
       });
 }
 
-const tokenRegExp = new RegExp(`^([1-9]\\d*)\\|([a-z0-9]{${TOKEN_SIZE}})$`)
+const tokenRegExp = new RegExp(`^([1-9]\\d*)\\s([a-z0-9]{${TOKEN_SIZE}})$`)
 
 async function octetHandler(req: NextApiRequest, res: NextApiResponse) {
   const token = req.query.accountToken;

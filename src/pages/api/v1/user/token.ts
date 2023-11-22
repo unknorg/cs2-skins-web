@@ -44,6 +44,6 @@ function validate(req: NextApiRequest, res: NextApiResponse<string>): boolean {
 function sendToken(res: NextApiResponse<string>, account: Account) {
   res.setHeader("Content-Type", "application/json");
   res.send(JSON.stringify({
-    token: `${account.id}|${account.token}`
+    token: `${account.id} ${account.token}`
   }))
 }
