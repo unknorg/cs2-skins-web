@@ -4,6 +4,6 @@ on: create
 jobs:
   common-create-pr:
     if: ${{ github.actor != 'dependabot[bot]' }}
-    uses: unknorg/common-workflows/.github/workflows/create-pr.gen.yml@v0.5.0
+    uses: unknorg/common-workflows/.github/workflows/create-pr.gen.yml@v0.6.2
     secrets:
       GITHUB_PAT: ${{ secrets.COMMON_PAT }}
